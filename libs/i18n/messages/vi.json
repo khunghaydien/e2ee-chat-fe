@@ -1,0 +1,47 @@
+{
+  "app_title": "E2EE Chat",
+  "app_description": "E2EE Chat là một nền tảng chat an toàn và riêng tư.",
+  "header": {
+    "brandName": "SecureChat",
+    "enterprise": "Doanh nghiệp",
+    "dashboard": "Bảng điều khiển",
+    "messages": "Tin nhắn",
+    "contacts": "Danh bạ",
+    "vault": "Kho bảo mật",
+    "systemSecure": "Hệ thống an toàn",
+    "notifications": "Thông báo",
+    "profileAvatar": "Ảnh đại diện"
+  },
+  "sidebar": {
+    "searchPlaceholder": "Tìm kiếm cuộc hội thoại...",
+    "searchAria": "Tìm kiếm cuộc hội thoại",
+    "newEncryptedChat": "Chat mã hóa mới",
+    "conversation1Title": "Dự án Aurora Core",
+    "conversation1LastMessage": "Các khóa đã được xoay và sẵn sàng...",
+    "conversation2Title": "Kỹ thuật bảo mật",
+    "conversation2LastMessage": "Đã hoàn thành kiểm toán Q3",
+    "conversation3Title": "Sarah Miller",
+    "conversation3LastMessage": "Hẹn gặp trong cuộc họp.",
+    "timeYesterday": "Hôm qua"
+  },
+  "chat": {
+    "e2eEncrypted": "Mã hóa đầu cuối",
+    "participants": "Thành viên",
+    "call": "Gọi",
+    "videoCall": "Gọi video",
+    "chatInfo": "Thông tin chat",
+    "chatHeaderAvatar": "Ảnh đại diện chat",
+    "today": "Hôm nay",
+    "you": "Bạn",
+    "encryptedTooltip": "Chỉ bạn và người nhận có thể đọc tin nhắn này",
+    "messagesEncrypted": "Tin nhắn được mã hóa đầu cuối",
+    "typeMessagePlaceholder": "Nhập tin nhắn mã hóa...",
+    "attach": "Đính kèm",
+    "emoji": "Biểu tượng cảm xúc",
+    "sendMessage": "Gửi tin nhắn",
+    "messageInputAria": "Ô nhập tin nhắn",
+    "message1Content": "Tôi đã cập nhật manifest triển khai với các khóa mã hóa mới. Chúng ta có thể đẩy lên production.",
+    "message2Content": "Đã xác nhận. Đang chạy kiểm tra cuối cùng. Chúng ta đã xác minh các module phần cứng chưa?",
+    "message3Content": "Có, các HSM báo 100% trạng thái tốt. Sẵn sàng khi bạn."
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "app_title": "E2EE Chat",
+  "app_description": "E2EE Chat is a platform for secure and private chat.",
+  "header": {
+    "brandName": "SecureChat",
+    "enterprise": "Enterprise",
+    "dashboard": "Dashboard",
+    "messages": "Messages",
+    "contacts": "Contacts",
+    "vault": "Vault",
+    "systemSecure": "System Secure",
+    "notifications": "Notifications",
+    "profileAvatar": "User profile avatar"
+  },
+  "sidebar": {
+    "searchPlaceholder": "Search conversations...",
+    "searchAria": "Search conversations",
+    "newEncryptedChat": "New Encrypted Chat",
+    "conversation1Title": "Project Aurora Core",
+    "conversation1LastMessage": "The keys are rotated and ready...",
+    "conversation2Title": "Security Engineering",
+    "conversation2LastMessage": "Audit completed for Q3",
+    "conversation3Title": "Sarah Miller",
+    "conversation3LastMessage": "See you in the meeting.",
+    "timeYesterday": "Yesterday"
+  },
+  "chat": {
+    "e2eEncrypted": "End-to-End Encrypted",
+    "participants": "Participants",
+    "call": "Call",
+    "videoCall": "Video call",
+    "chatInfo": "Chat info",
+    "chatHeaderAvatar": "Chat header avatar",
+    "today": "Today",
+    "you": "You",
+    "encryptedTooltip": "Only you and the recipient can read these messages",
+    "messagesEncrypted": "Messages are end-to-end encrypted",
+    "typeMessagePlaceholder": "Type an encrypted message...",
+    "attach": "Attach",
+    "emoji": "Emoji",
+    "sendMessage": "Send message",
+    "messageInputAria": "Message input",
+    "message1Content": "I've updated the deployment manifest with the new encryption keys. We should be good for the production push.",
+    "message2Content": "Confirmed. Running the final validation now. Have we verified the hardware modules?",
+    "message3Content": "Yes, the HSMs are reporting 100% health. Ready when you are."
+  }
+}
