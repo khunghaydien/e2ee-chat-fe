@@ -51,7 +51,7 @@ export const ProfileDropdown = () => {
                 ]
             }}>
             <Space align="center" size={16}>
-                <span>{user?.email}</span>
+                <span>{user?.userName}</span>
             </Space>
         </Dropdown>
     )

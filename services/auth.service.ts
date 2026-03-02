@@ -1,31 +1,31 @@
 import { authAxiosService, publicAxiosService } from "./axios.service";
 import { TokenStorage } from "@/libs/ultils/tokenStorage";
 
-// Tuỳ backend của bạn, sửa lại field cho đúng
+/** BE trả về camelCase: accessToken, refreshToken */
 export interface SignInPayload {
-    email: string;
+    userName: string;
     password: string;
 }
 
 export interface SignUpPayload {
-    email: string;
+    userName: string;
     password: string;
+    publicKey: string;
 }
 
+/** Backend response: camelCase */
 export interface AuthTokens {
-    access_token: string;
-    refresh_token?: string;
+    accessToken: string;
+    refreshToken?: string;
 }
 
-export interface AuthResponse<TUser = unknown> extends AuthTokens {
+export interface AuthResponse<TUser = unknown> {
     user?: TUser;
+    accessToken: string;
+    refreshToken?: string;
 }
 
 class AuthService {
-    /**
-     * Gọi API sign-in, lưu access_token + refresh_token vào localStorage,
-     * trả về toàn bộ response (tokens + user nếu có).
-     */
     async signIn<TUser = unknown>(
         payload: SignInPayload
     ): Promise<AuthResponse<TUser>> {
@@ -33,16 +33,10 @@ class AuthService {
             "/auth/sign-in",
             payload
         );
-
         this.persistTokens(data);
-
         return data;
     }
 
-    /**
-     * Gọi API sign-up, lưu tokens nếu backend trả về (tùy thiết kế),
-     * trả về response.
-     */
     async signUp<TUser = unknown>(
         payload: SignUpPayload
     ): Promise<AuthResponse<TUser>> {
@@ -50,57 +44,42 @@ class AuthService {
             "/auth/sign-up",
             payload
         );
-
         this.persistTokens(data);
-
         return data;
     }
 
-    /**
-     * Dùng refresh_token hiện tại để lấy access_token mới.
-     * Axios interceptor trong authAxiosService cũng có cơ chế auto refresh 401,
-     * nhưng method này cho phép bạn chủ động refresh nếu cần.
-     */
     async refreshToken(): Promise<AuthTokens> {
-        const refresh_token = TokenStorage.getRefreshToken();
-        if (!refresh_token) {
+        const refreshToken = TokenStorage.getRefreshToken();
+        if (!refreshToken) {
             throw new Error("No refresh token");
         }
-
-        const { data } = await publicAxiosService.post<AuthTokens>(
+        const { data } = await publicAxiosService.post<AuthResponse>(
             "/auth/refresh-token",
-            { refresh_token }
+            { refreshToken }
         );
-
         this.persistTokens(data);
-
-        return data;
+        return { accessToken: data.accessToken, refreshToken: data.refreshToken };
     }
 
-    /**
-     * Lấy thông tin user hiện tại (nếu đã đăng nhập).
-     * Giả sử backend có endpoint /auth/me trả về user.
-     */
+    /** BE: GET /users/me */
     async getProfile<TUser = unknown>(): Promise<TUser> {
-        const { data } = await authAxiosService.get<TUser>("/auth/me");
+        const { data } = await authAxiosService.get<TUser>("/users/me");
         return data;
     }
 
-    /**
-     * Xoá tất cả token khỏi localStorage.
-     * Gọi khi logout.
-     */
     logout() {
         TokenStorage.clearTokens();
     }
 
-    private persistTokens(tokens: Partial<AuthTokens>) {
-        if (tokens.access_token) {
-            TokenStorage.setAccessToken(tokens.access_token);
+    private persistTokens(tokens: {
+        accessToken?: string;
+        refreshToken?: string;
+    }) {
+        if (tokens.accessToken) {
+            TokenStorage.setAccessToken(tokens.accessToken);
         }
-
-        if (tokens.refresh_token) {
-            TokenStorage.setRefreshToken(tokens.refresh_token);
+        if (tokens.refreshToken) {
+            TokenStorage.setRefreshToken(tokens.refreshToken);
         }
     }
 }

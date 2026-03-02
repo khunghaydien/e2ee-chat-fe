@@ -1,14 +1,19 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   LockOutlined,
   SafetyCertificateOutlined,
   BellOutlined,
+  LogoutOutlined,
 } from "@ant-design/icons";
 import { useTranslations } from "next-intl";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { LanguageToggle } from "@/components/layout/LanguageToggle";
+import { authService } from "@/services/auth.service";
+import { useAuth } from "@/hooks/useAuth";
+import { useE2EE } from "@/contexts/E2EEContext";
 
 const navKeys = [
   { key: "dashboard", href: "#", active: false },
@@ -19,6 +24,17 @@ const navKeys = [
 
 export function Header() {
   const t = useTranslations("header");
+  const router = useRouter();
+  const { user } = useAuth();
+  const { lock } = useE2EE();
+
+  const handleLogout = () => {
+    lock();
+    authService.logout();
+    router.replace("/gateway-auth");
+    router.refresh();
+  };
+
   return (
     <header className="flex items-center justify-between whitespace-nowrap border-b border-solid border-slate-200 dark:border-slate-800 px-6 py-3 bg-white dark:bg-background-dark z-10">
       <div className="flex items-center gap-8">
@@ -71,6 +87,15 @@ export function Header() {
           <ThemeToggle />
           <LanguageToggle />
         </span>
+        <button
+          type="button"
+          onClick={handleLogout}
+          className="p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors flex items-center gap-2"
+          title="Đăng xuất"
+        >
+          <LogoutOutlined />
+          <span className="text-xs font-medium hidden sm:inline">{user?.userName ?? "User"}</span>
+        </button>
         <div
           className="h-8 w-8 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center overflow-hidden bg-cover bg-center"
           style={{

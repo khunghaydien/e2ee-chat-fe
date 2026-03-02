@@ -3,7 +3,8 @@ import { authService } from "@/services/auth.service";
 import { TokenStorage } from "@/libs/ultils/tokenStorage";
 
 export interface AuthUser {
-    email: string;
+    id: string;
+    userName: string;
 }
 
 export const useAuth = () => {

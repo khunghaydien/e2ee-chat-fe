@@ -1,38 +1,99 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { MessageBubble } from "./MessageBubble";
+import type { MessageItem } from "@/services/conversation.service";
+import {
+  decryptMessage,
+  isEncryptedContent,
+} from "@/libs/e2ee/message-cipher";
 
-export function MessageList() {
+interface MessageListProps {
+  messages: MessageItem[];
+  currentUserId: string | null;
+  privateKey: CryptoKey | null;
+  /** Public key của người còn lại trong room (recipient khi mình gửi). Chỉ dùng để giải mã tin MÌNH ĐÃ GỬI. */
+  otherParticipantPublicKey: string | null;
+}
+
+/**
+ * Quy tắc E2EE 1-1 (không được lấy nhầm public key):
+ * - Tin ĐẾN (người khác gửi): giải mã bằng (myPrivate, publicKeyOf(sender)) = msg.sender.publicKey.
+ * - Tin ĐI (mình gửi): đã mã hóa bằng (myPrivate, publicKeyOf(recipient)) → giải mã bằng (myPrivate, recipientPublic) = otherParticipantPublicKey.
+ */
+function getCounterpartyPublicKeyForDecrypt(
+  msg: MessageItem,
+  currentUserId: string | null,
+  otherParticipantPublicKey: string | null
+): string | null {
+  const isOwn = msg.senderId === currentUserId;
+  if (isOwn) {
+    return otherParticipantPublicKey;
+  }
+  return msg.sender?.publicKey ?? null;
+}
+
+export function MessageList({
+  messages,
+  currentUserId,
+  privateKey,
+  otherParticipantPublicKey,
+}: MessageListProps) {
   const t = useTranslations("chat");
-  const messages = [
-    {
-      id: "1",
-      content: t("message1Content"),
-      sender: "Marcus Chen",
-      avatar:
-        "https://lh3.googleusercontent.com/aida-public/AB6AXuD_MupO0T-LVQSQWPF2S3Om_hBOKQdyjKo1wiZptsDQjYTnkoHbvRrzBX8NlaCBIUFMlQRtqKirLigM5rC7UGubrJTFl5igL8TlbIL70ErsIZbgxIYkXW-nmu07RFrcBhyUJ0OfgcjWW20kHudzE7JnUJR2BSopqUAnDjZN-oTanUtcgtfyTkEAffEX2_xzZ-AZTgw_pF1VKlz0ddysFnLbZpLrMZd74nuGiRwXH0Gi77JliV4-Ru6Q97GI5jHipn85L2-_uTUmvnU",
-      isOwn: false,
-    },
-    {
-      id: "2",
-      content: t("message2Content"),
-      sender: t("you"),
-      avatar:
-        "https://lh3.googleusercontent.com/aida-public/AB6AXuCzycphTgA6oThAOkTbMV-PSuMrZASmVHMuU9TiI4CD2C-CaJoCIysm-0uUkCCL9CGnGNI1dcBfouvscpXI1nYrAzIalyjEmpXra41apx8DXHgSzbAaH4PE0zUGxu1SJlHka_FN7RFsyfxjgCvDsHLtgc-JeLjU2_6lTBb88M1uSudfmt0i8rRApKl_AyYlGf8ThzQy3D9Gmso0WPyiXK9FkjVR5fF-ZCZg9Xm1fKmXeRH0RwoH82s-hDfrleKSrJVC1z23pCxeUD4",
-      isOwn: true,
-      time: "14:21",
-      read: true,
-    },
-    {
-      id: "3",
-      content: t("message3Content"),
-      sender: "Marcus Chen",
-      avatar:
-        "https://lh3.googleusercontent.com/aida-public/AB6AXuD7e5i3i8_oweUCe6WpJNMZvE7udzIyYdgZ_Kre627rB268staRqYJwFfJvqgoLh_Ka4d-J-_EeEIQkhjaLLB1JQIKJw3dGdSUjHp8yfNF3IjAoLduHrr_yoBAu6Z8c07Czr8dJuwrVNwBqxlanAhhiYLLRNx8lOrZ0XIcqhVenlwu14DHvJwAtSjxj437I-Ggy9L3XdvW2RQu-XH2N4GNTqXIVdiHc-tjnUSzRUPImdoedavEVBPGEztGyXuHz7rGzqNV3QWBGIOk",
-      isOwn: false,
-    },
-  ];
+  const [decryptedMap, setDecryptedMap] = useState<Record<string, string>>({});
+
+  const sorted = [...messages].sort(
+    (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+  );
+
+  const messageIds = sorted.map((m) => m.id).join(",");
+  useEffect(() => {
+    let cancelled = false;
+
+    sorted.forEach(async (msg) => {
+      if (!isEncryptedContent(msg.content) || !privateKey) {
+        return;
+      }
+
+      const counterpartyPublicKey = getCounterpartyPublicKeyForDecrypt(
+        msg,
+        currentUserId,
+        otherParticipantPublicKey
+      );
+
+      if (!counterpartyPublicKey) {
+        if (!cancelled) {
+          const isOwn = msg.senderId === currentUserId;
+          setDecryptedMap((prev) => ({
+            ...prev,
+            [msg.id]: isOwn
+              ? "[Thiếu public key người nhận]"
+              : "[Thiếu public key người gửi]",
+          }));
+        }
+        return;
+      }
+
+      try {
+        const plain = await decryptMessage(
+          msg.content,
+          privateKey,
+          counterpartyPublicKey
+        );
+        if (!cancelled) {
+          setDecryptedMap((prev) => ({ ...prev, [msg.id]: plain }));
+        }
+      } catch {
+        if (!cancelled) {
+          setDecryptedMap((prev) => ({ ...prev, [msg.id]: "[Không thể giải mã]" }));
+        }
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [messageIds, privateKey, currentUserId, otherParticipantPublicKey]);
 
   return (
     <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar min-h-0">
@@ -41,17 +102,27 @@ export function MessageList() {
           {t("today")}
         </div>
       </div>
-      {messages.map((msg) => (
-        <MessageBubble
-          key={msg.id}
-          content={msg.content}
-          sender={msg.sender}
-          avatar={msg.avatar}
-          isOwn={msg.isOwn}
-          time={msg.time}
-          read={msg.read}
-        />
-      ))}
+      {sorted.map((msg) => {
+        const displayContent =
+          decryptedMap[msg.id] ??
+          (isEncryptedContent(msg.content)
+            ? privateKey
+              ? "..."
+              : "[Đăng nhập trên thiết bị này để xem]"
+            : msg.content);
+        return (
+          <MessageBubble
+            key={msg.id}
+            content={displayContent}
+            sender={msg.sender?.userName ?? "?"}
+            isOwn={msg.senderId === currentUserId}
+            time={new Date(msg.createdAt).toLocaleTimeString("vi-VN", {
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+          />
+        );
+      })}
     </div>
   );
 }

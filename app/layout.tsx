@@ -7,6 +7,7 @@ import { NextIntlClientProvider } from "next-intl";
 import "./globals.css";
 import "antd/dist/reset.css";
 import { ReactQueryProvider } from "@/libs/tanstack/ReactQueryProvider";
+import { E2EEProvider } from "@/contexts/E2EEContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -49,7 +50,9 @@ export default async function RootLayout({
         <ThemeProvider>
           <NextIntlClientProvider messages={messages}>
             <AntdProvider>
-              <ReactQueryProvider>{children}</ReactQueryProvider>
+              <E2EEProvider>
+                <ReactQueryProvider>{children}</ReactQueryProvider>
+              </E2EEProvider>
             </AntdProvider>
           </NextIntlClientProvider>
         </ThemeProvider>

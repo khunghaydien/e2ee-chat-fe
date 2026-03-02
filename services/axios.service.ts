@@ -56,9 +56,8 @@ export const authAxiosService: AxiosInstance = (() => {
         originalRequest._retry = true;
 
         try {
-          // Gọi hàm refresh trong auth.service
-          const refreshed: AuthTokens = await authService.refreshToken();
-          const newAccessToken = refreshed.access_token;
+          const refreshed = await authService.refreshToken();
+          const newAccessToken = refreshed.accessToken;
 
           instance.defaults.headers.common.Authorization = `Bearer ${newAccessToken}`;
           originalRequest.headers = originalRequest.headers ?? {};
