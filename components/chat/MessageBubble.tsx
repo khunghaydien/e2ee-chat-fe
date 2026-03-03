@@ -1,15 +1,9 @@
 "use client";
-
-import { CheckOutlined } from "@ant-design/icons";
-import { useTranslations } from "next-intl";
-
 interface MessageBubbleProps {
   content: string;
-  sender: string;
+  sender?: string;
   avatar?: string;
   isOwn?: boolean;
-  time?: string;
-  read?: boolean;
 }
 
 export function MessageBubble({
@@ -17,50 +11,45 @@ export function MessageBubble({
   sender,
   avatar,
   isOwn,
-  time,
-  read,
 }: MessageBubbleProps) {
-  const t = useTranslations("chat");
+  const wrapperClasses = isOwn
+    ? "w-full flex justify-end mb-2"
+    : "w-full flex justify-start mb-2";
+
+  const innerClasses = isOwn
+    ? "flex max-w-[70%] items-end gap-2 flex-row-reverse"
+    : "flex max-w-[70%] items-end gap-2";
+
   return (
-    <div
-      className={`flex items-end gap-3 max-w-2xl ${isOwn ? "flex-row-reverse self-end" : ""}`}
-    >
-      <div
-        className="h-8 w-8 rounded-full bg-cover bg-center shrink-0 mb-1"
-        style={avatar ? { backgroundImage: `url('${avatar}')` } : undefined}
-        role="img"
-        aria-label={`${sender} avatar`}
-      />
-      <div className={`flex flex-col gap-1 ${isOwn ? "items-end" : ""}`}>
-        <span
-          className={`text-[10px] font-semibold text-slate-400 ${isOwn ? "mr-2" : "ml-2"}`}
-        >
-          {sender}
-        </span>
-        <div className="relative group">
-          <div
-            className={`p-3 rounded-2xl text-sm shadow-sm ${
-              isOwn
-                ? "bg-primary text-white rounded-br-none shadow-lg shadow-primary/20 glow-primary"
-                : "bg-white dark:bg-slate-800 rounded-bl-none border border-slate-200 dark:border-slate-700/50"
-            }`}
-          >
-            {content}
-          </div>
-          <div
-            className={`absolute -bottom-8 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-900 text-white text-[10px] py-1 px-2 rounded pointer-events-none whitespace-nowrap z-20 ${
-              isOwn ? "right-0" : "left-0"
-            }`}
-          >
-            {t("encryptedTooltip")}
+    <div className={wrapperClasses}>
+      <div className={innerClasses}>
+        <div
+          className="h-8 w-8 rounded-full bg-cover bg-center shrink-0 mb-1"
+          style={avatar ? { backgroundImage: `url('${avatar}')` } : undefined}
+          role="img"
+          aria-label={`${sender} avatar`}
+        />
+        <div className={`flex flex-col gap-1 ${isOwn ? "items-end" : ""}`}>
+          {sender && (
+            <span className="text-[10px] font-semibold text-slate-400">
+              {sender}
+            </span>
+          )}
+          <div className="relative group">
+            <div
+              className={`px-4 py-2.5 rounded-3xl text-sm shadow-sm ${isOwn
+                ? "bg-primary text-white rounded-br-md shadow-lg shadow-primary/20 glow-primary"
+                : "bg-white dark:bg-slate-800 rounded-bl-md border border-slate-200 dark:border-slate-700/50"
+                }`}
+              style={{
+                wordBreak: "break-all",
+                whiteSpace: "pre-wrap",
+              }}
+            >
+              {content}
+            </div>
           </div>
         </div>
-        {isOwn && time && (
-          <div className="flex items-center gap-1 mr-1">
-            <span className="text-[9px] text-slate-400">{time}</span>
-            <CheckOutlined className="text-[14px] text-primary" />
-          </div>
-        )}
       </div>
     </div>
   );

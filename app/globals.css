@@ -1,85 +1,52 @@
 @import "tailwindcss";
 
-/* Dark mode theo class (toggle), không theo system */
-@custom-variant dark (&:where(.dark, .dark *));
-
-/* ========== Light theme (mặc định) ========== */
-:root,
-.light {
+:root {
   --background: #ffffff;
-  --foreground: #0f172a;
-  --primary: #137fec;
-  --background-light: #f6f7f8;
-  --background-dark: #101922;
-  --surface: #ffffff;
-  --surface-muted: #f1f5f9;
-  --border: #e2e8f0;
-  --text: #0f172a;
-  --text-muted: #64748b;
-  --chat-area-bg: #f8fafc;
-  --chat-area-bg-dark: #0b1118;
-  --success: #10b981;
-  --success-bg: rgba(16, 185, 129, 0.1);
-  --success-border: rgba(16, 185, 129, 0.2);
-  --scrollbar-thumb: #cbd5e1;
-  --glow-primary: rgba(19, 127, 236, 0.2);
-}
-
-/* ========== Dark theme ========== */
-.dark {
-  --background: #101922;
-  --foreground: #f1f5f9;
-  --background-light: #1a2332;
-  --background-dark: #101922;
-  --surface: #151f2e;
-  --surface-muted: #1e293b;
-  --border: #334155;
-  --text: #f1f5f9;
-  --text-muted: #94a3b8;
-  --chat-area-bg: #0b1118;
-  --success: #34d399;
-  --success-bg: rgba(52, 211, 153, 0.15);
-  --success-border: rgba(52, 211, 153, 0.3);
-  --scrollbar-thumb: #475569;
-  --glow-primary: rgba(19, 127, 236, 0.25);
+  --foreground: #171717;
+  --primary: #ff6600;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-primary: var(--primary);
-  --color-background-light: var(--background-light);
-  --color-background-dark: var(--background-dark);
-  --color-chat-area-bg: var(--chat-area-bg);
-  --color-chat-area-bg-dark: var(--chat-area-bg-dark);
-  --color-success: var(--success);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-  --radius: 0.25rem;
-  --radius-lg: 0.5rem;
-  --radius-xl: 0.75rem;
+}
+
+.dark {
+  --background: #0a0a0a;
+  --foreground: #ededed;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not(.light) {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-display);
-  transition: background-color 0.2s ease, color 0.2s ease;
+  font-family: Arial, Helvetica, sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-.custom-scrollbar::-webkit-scrollbar {
-  width: 4px;
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px var(--ant-color-bg-container) inset;
+  -webkit-text-fill-color: var(--foreground);
+  transition: background-color 5000s ease-in-out 0s;
 }
 
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: var(--scrollbar-thumb);
-  border-radius: 10px;
-}
-
-.glow-primary {
-  box-shadow: 0 0 15px var(--glow-primary);
-}
+.ant-form-item .ant-form-item-label {
+  > label {
+    color: var(--foreground) !important;
+    font-weight: 600 !important;
+  }
+  > label.ant-form-item-required::before {
+  display: none !important;
+}}

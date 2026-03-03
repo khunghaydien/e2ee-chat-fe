@@ -44,6 +44,7 @@ class ConversationService {
   async listConversations(params?: {
     cursor?: string;
     limit?: number;
+    title?: string;
   }): Promise<ListConversationsResult> {
     const { data } = await authAxiosService.get<ListConversationsResult>(
       "/conversations",

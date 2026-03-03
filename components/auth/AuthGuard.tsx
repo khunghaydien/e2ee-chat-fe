@@ -1,31 +1,101 @@
-"use client";
-
-import { useEffect } from "react";
+ "use client";
+import { ReactNode, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { TokenStorage } from "@/libs/ultils/tokenStorage";
+import { Modal, Input, Typography } from "antd";
+import { useAuth } from "@/hooks/useAuth";
+import { PrivateKeyStorage } from "@/libs/ultils/privateKeyStorage";
+import { importPrivateKeyFromJwk } from "@/libs/e2ee/ecdh-keys";
 
-/** Redirect to /gateway-auth if no tokens (use on protected pages like /) */
-export function AuthGuard({ children }: { children: React.ReactNode }) {
-  const router = useRouter();
-  useEffect(() => {
-    const hasToken =
-      !!TokenStorage.getAccessToken() && !!TokenStorage.getRefreshToken();
-    if (!hasToken) {
-      router.replace("/gateway-auth");
-    }
-  }, [router]);
-  return <>{children}</>;
+interface AuthGuardProps {
+    children: ReactNode;
+    redirectTo?: string;
 }
 
-/** Redirect to / if already has tokens (use on login page) */
-export function GuestOnlyGuard({ children }: { children: React.ReactNode }) {
-  const router = useRouter();
-  useEffect(() => {
-    const hasToken =
-      !!TokenStorage.getAccessToken() && !!TokenStorage.getRefreshToken();
-    if (hasToken) {
-      router.replace("/");
+export const AuthGuard = ({ children, redirectTo = "/sign-in" }: AuthGuardProps) => {
+    const router = useRouter();
+    const { isAuthenticated, isLoading } = useAuth();
+    const [hasCheckedPrivateKey, setHasCheckedPrivateKey] = useState(false);
+    const [isPrivateKeyModalOpen, setIsPrivateKeyModalOpen] = useState(false);
+    const [privateKeyInput, setPrivateKeyInput] = useState("");
+    const [privateKeyError, setPrivateKeyError] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (!isLoading && !isAuthenticated) {
+            router.push(redirectTo);
+        }
+    }, [isLoading, isAuthenticated, redirectTo, router]);
+
+    useEffect(() => {
+        if (!isLoading && isAuthenticated && !hasCheckedPrivateKey) {
+            const existing = PrivateKeyStorage.getPrivateKeyJwk();
+            if (!existing) {
+                setIsPrivateKeyModalOpen(true);
+            }
+            setHasCheckedPrivateKey(true);
+        }
+    }, [isLoading, isAuthenticated, hasCheckedPrivateKey]);
+
+    const handleConfirmPrivateKey = async () => {
+        const raw = privateKeyInput.trim();
+        if (!raw) {
+            setPrivateKeyError("Private key is required");
+            return;
+        }
+        try {
+            await importPrivateKeyFromJwk(raw);
+        } catch {
+            setPrivateKeyError("Invalid private key (JWK)");
+            return;
+        }
+        PrivateKeyStorage.setPrivateKeyJwk(raw);
+        setIsPrivateKeyModalOpen(false);
+        setPrivateKeyError(null);
+    };
+
+    const handleCancelPrivateKey = () => {
+        setIsPrivateKeyModalOpen(false);
+    };
+
+    if (isLoading || !hasCheckedPrivateKey) {
+        return null;
     }
-  }, [router]);
-  return <>{children}</>;
-}
+
+    if (!isAuthenticated) {
+        return null;
+    }
+
+    return (
+        <>
+            {children}
+            <Modal
+                open={isPrivateKeyModalOpen}
+                onOk={handleConfirmPrivateKey}
+                onCancel={handleCancelPrivateKey}
+                okText="Save private key"
+                cancelText="Cancel"
+                maskClosable={false}
+                closable={false}
+                title="Enter your private key"
+            >
+                <Typography.Paragraph type="secondary">
+                    Paste your private key (JWK) to decrypt your messages. It will be stored in your browser's local storage.
+                </Typography.Paragraph>
+                <Input.TextArea
+                    value={privateKeyInput}
+                    onChange={(e) => {
+                        setPrivateKeyInput(e.target.value);
+                        setPrivateKeyError(null);
+                    }}
+                    autoSize={{ minRows: 4, maxRows: 8 }}
+                    placeholder="Paste your private key JWK here"
+                />
+                {privateKeyError && (
+                    <Typography.Paragraph type="danger" style={{ marginTop: 8 }}>
+                        {privateKeyError}
+                    </Typography.Paragraph>
+                )}
+            </Modal>
+        </>
+    );
+};
+

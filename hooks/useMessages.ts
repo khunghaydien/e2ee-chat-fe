@@ -1,18 +1,22 @@
 "use client";
 
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useInfiniteQuery, useQueryClient, type InfiniteData } from "@tanstack/react-query";
 import { useEffect } from "react";
-import { conversationService } from "@/services/conversation.service";
+import { conversationService, type ListMessagesResult, type MessageItem } from "@/services/conversation.service";
 import { joinConversation } from "@/services/socket.service";
-import type { MessageItem } from "@/services/conversation.service";
 import type { Socket } from "socket.io-client";
 
 export function useMessages(conversationId: string | null, socket: Socket | null) {
   const queryClient = useQueryClient();
-  const query = useQuery({
+  const query = useInfiniteQuery({
     queryKey: ["messages", conversationId],
-    queryFn: () =>
-      conversationService.listMessages(conversationId!, { limit: 50 }),
+    queryFn: ({ pageParam }) =>
+      conversationService.listMessages(conversationId!, {
+        cursor: typeof pageParam === "string" ? pageParam : undefined,
+        limit: 50,
+      }),
+    initialPageParam: null as string | null,
+    getNextPageParam: (lastPage) => lastPage.nextCursor,
     enabled: !!conversationId,
     staleTime: 10 * 1000,
   });
@@ -22,17 +26,22 @@ export function useMessages(conversationId: string | null, socket: Socket | null
     joinConversation(socket, conversationId);
     const handler = (msg: MessageItem) => {
       if (msg.conversationId !== conversationId) return;
-      queryClient.setQueryData<{ items: MessageItem[]; nextCursor: string | null }>(
+      queryClient.setQueryData<InfiniteData<ListMessagesResult>>(
         ["messages", conversationId],
         (prev) => {
           if (!prev) return prev;
-          const exists = prev.items.some((m) => m.id === msg.id);
+          const pages = [...prev.pages];
+          const lastPageIndex = pages.length - 1;
+          const lastPage = pages[lastPageIndex];
+          const exists = lastPage.items.some((m) => m.id === msg.id);
           if (exists) return prev;
-          return {
-            ...prev,
-            items: [...prev.items, msg],
+          const updatedLastPage: ListMessagesResult = {
+            ...lastPage,
+            items: [...lastPage.items, msg],
           };
-        }
+          pages[lastPageIndex] = updatedLastPage;
+          return { ...prev, pages };
+        },
       );
     };
     socket.on("new_message", handler);
