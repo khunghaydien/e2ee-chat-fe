@@ -35,7 +35,7 @@ export function Header() {
         <Text strong>{t("app_title")}</Text>
       </div>
       <div className="flex items-center gap-2">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center">
           <ThemeToggle />
           <LanguageToggle />
         </div>
@@ -43,7 +43,7 @@ export function Header() {
           className="flex items-center gap-2 cursor-pointer"
           onClick={handleLogout}
         >
-          <LogoutOutlined />
+          <LogoutOutlined style={{ color: token.colorTextSecondary }}/>
           <Text>{user?.userName ?? "User"}</Text>
         </div>
       </div>

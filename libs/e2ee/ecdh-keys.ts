@@ -99,14 +99,44 @@ export async function exportPrivateKeyJwk(privateKey: CryptoKey): Promise<string
 }
 
 /** Import private key từ chuỗi JWK (user dán bản copy). */
-export async function importPrivateKeyFromJwk(jwkString: string): Promise<CryptoKey> {
-  const jwk = JSON.parse(jwkString) as JsonWebKey;
+export async function importPrivateKeyFromJwk(
+  jwkString: string,
+): Promise<CryptoKey> {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(jwkString);
+  } catch (e) {
+    throw new Error("Private key JWK must be valid JSON");
+  }
+
+  // Cho phép trường hợp user paste 2 lớp string: "\"{...}\""
+  if (typeof parsed === "string") {
+    try {
+      parsed = JSON.parse(parsed);
+    } catch {
+      throw new Error("Private key JWK is wrapped in an invalid string");
+    }
+  }
+
+  const jwk = parsed as JsonWebKey;
+
+  if (jwk.kty !== "EC" || jwk.crv !== "P-256") {
+    throw new Error("Private key must be EC P-256 JWK");
+  }
+
+  // Private key ECDH bắt buộc phải có trường `d`
+  if (!jwk.d) {
+    throw new Error(
+      "This looks like a public key JWK",
+    );
+  }
+
   return await crypto.subtle.importKey(
     "jwk",
     jwk,
     { name: "ECDH", namedCurve: "P-256" },
     true,
-    ["deriveBits", "deriveKey"]
+    ["deriveBits", "deriveKey"],
   );
 }
 

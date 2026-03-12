@@ -43,11 +43,18 @@ export const AuthGuard = ({ children, redirectTo = "/sign-in" }: AuthGuardProps)
         }
         try {
             await importPrivateKeyFromJwk(raw);
-        } catch {
-            setPrivateKeyError("Invalid private key (JWK)");
+        } catch (err) {
+            if (err instanceof Error && err.message) {
+                setPrivateKeyError(err.message);
+            } else {
+                setPrivateKeyError("Invalid private key (JWK)");
+            }
             return;
         }
         PrivateKeyStorage.setPrivateKeyJwk(raw);
+        if (typeof window !== "undefined") {
+            window.dispatchEvent(new Event("private-key-updated"));
+        }
         setIsPrivateKeyModalOpen(false);
         setPrivateKeyError(null);
     };

@@ -27,8 +27,15 @@ export function ChatSidebarItem({
     <div
       className={`w-full px-3 py-2 rounded-xl cursor-pointer transition-colors ${
         isActive
-          ? "bg-primary/15 border border-primary/40"
-          : "hover:bg-muted/70"
+          ? [
+              // item đang active: nền cam nhẹ, không viền
+              "bg-orange-500/15",
+            ].join(" ")
+          : [
+              "bg-transparent",
+              "hover:bg-white/5",
+              "dark:hover:bg-white/8",
+            ].join(" ")
       }`}
     >
       <div className="flex items-center gap-3">
@@ -39,15 +46,15 @@ export function ChatSidebarItem({
             <Avatar
               size={40}
               icon={isGroup ? <TeamOutlined /> : <UserOutlined />}
-              className="bg-muted text-foreground-secondary"
+              className="bg-gradient-to-br from-slate-700 to-slate-900 text-white"
             />
           )}
         </Badge>
         <div className="flex-1 min-w-0 flex items-center justify-between gap-2">
           <div className="min-w-0">
             <Typography.Text
-              className={`block text-sm truncate ${
-                isActive ? "font-semibold text-foreground" : "text-foreground"
+              className={`block text-sm truncate text-foreground ${
+                isActive ? "font-semibold" : ""
               }`}
             >
               {title}
@@ -55,11 +62,11 @@ export function ChatSidebarItem({
             {lastMessage && (
               <div className="flex items-center gap-1">
                 {isEncrypted && (
-                  <LockOutlined className="text-[11px] text-foreground-secondary" />
+                  <LockOutlined className="text-xs text-foreground" />
                 )}
                 <Typography.Text
                   type="secondary"
-                  className="text-[11px] truncate"
+                  className="text-xs truncate"
                 >
                   {lastMessage}
                 </Typography.Text>
@@ -67,8 +74,8 @@ export function ChatSidebarItem({
             )}
           </div>
           <Typography.Text
-            className={`text-[11px] shrink-0 ${
-              isActive ? "text-primary font-semibold" : "text-foreground-secondary"
+            className={`text-xs shrink-0 ${
+              isActive ? "text-primary font-semibold" : "text-foreground"
             }`}
           >
             {time}

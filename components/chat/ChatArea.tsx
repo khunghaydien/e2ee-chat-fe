@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { MessageList } from "./MessageList";
 import { MessageInput } from "./MessageInput";
@@ -24,7 +24,7 @@ export function ChatArea({ selectedConversationId }: ChatAreaProps) {
     hasNextPage: hasMoreMessages,
     fetchNextPage: fetchMoreMessages,
     isFetchingNextPage,
-  } = useMessages(selectedConversationId, socket);
+  } = useMessages(selectedConversationId, socket, user?.id ?? null);
   const { data: participants } = useParticipants(selectedConversationId ?? null);
 
   const [keyError, setKeyError] = useState<string | null>(null);
@@ -32,47 +32,50 @@ export function ChatArea({ selectedConversationId }: ChatAreaProps) {
   const [isLoadingPrivateKey, setIsLoadingPrivateKey] = useState(true);
 
   const otherParticipant = participants?.find((p) => p.id !== user?.id);
-  useEffect(() => {
-    let cancelled = false;
 
-    const loadPrivateKey = async () => {
-      setIsLoadingPrivateKey(true);
+  const loadPrivateKey = useCallback(async () => {
+    setIsLoadingPrivateKey(true);
+    setKeyError(null);
+    const jwk = PrivateKeyStorage.getPrivateKeyJwk();
+    if (!jwk) {
+      setPrivateKey(null);
+      setIsLoadingPrivateKey(false);
+      return;
+    }
+    try {
+      const key = await importPrivateKeyFromJwk(jwk);
+      setPrivateKey(key);
       setKeyError(null);
-      const jwk = PrivateKeyStorage.getPrivateKeyJwk();
-      if (!jwk) {
-        setPrivateKey(null);
-        setIsLoadingPrivateKey(false);
-        return;
-      }
-      try {
-        const key = await importPrivateKeyFromJwk(jwk);
-        if (!cancelled) {
-          setPrivateKey(key);
-          setKeyError(null);
-        }
-      } catch (e) {
-        if (!cancelled) {
-          setPrivateKey(null);
-          const fallback = t("invalidStoredPrivateKey");
-          setKeyError(e instanceof Error && e.message ? e.message : fallback);
-        }
-      } finally {
-        if (!cancelled) {
-          setIsLoadingPrivateKey(false);
-        }
-      }
-    };
+    } catch (e) {
+      setPrivateKey(null);
+      const fallback = t("invalidStoredPrivateKey");
+      setKeyError(e instanceof Error && e.message ? e.message : fallback);
+    } finally {
+      setIsLoadingPrivateKey(false);
+    }
+  }, [t]);
 
+  useEffect(() => {
     void loadPrivateKey();
+  }, [loadPrivateKey]);
 
-    return () => {
-      cancelled = true;
+  useEffect(() => {
+    const handler = () => {
+      void loadPrivateKey();
     };
-  }, []);
+    if (typeof window !== "undefined") {
+      window.addEventListener("private-key-updated", handler);
+    }
+    return () => {
+      if (typeof window !== "undefined") {
+        window.removeEventListener("private-key-updated", handler);
+      }
+    };
+  }, [loadPrivateKey]);
 
   if (!selectedConversationId) {
     return (
-      <section className="flex-1 flex flex-col bg-background min-w-0 items-center justify-center text-[var(--text-muted)]">
+      <section className="flex-1 flex flex-col bg-background min-w-0 items-center justify-center text-foreground">
         <p className="text-sm">
           {t("selectConversationPlaceholder")}
         </p>

@@ -6,7 +6,11 @@ import { conversationService, type ListMessagesResult, type MessageItem } from "
 import { joinConversation } from "@/services/socket.service";
 import type { Socket } from "socket.io-client";
 
-export function useMessages(conversationId: string | null, socket: Socket | null) {
+export function useMessages(
+  conversationId: string | null,
+  socket: Socket | null,
+  currentUserId: string | null,
+) {
   const queryClient = useQueryClient();
   const query = useInfiniteQuery({
     queryKey: ["messages", conversationId],
@@ -35,10 +39,35 @@ export function useMessages(conversationId: string | null, socket: Socket | null
           const lastPage = pages[lastPageIndex];
           const exists = lastPage.items.some((m) => m.id === msg.id);
           if (exists) return prev;
-          const updatedLastPage: ListMessagesResult = {
-            ...lastPage,
-            items: [...lastPage.items, msg],
-          };
+
+          const isOwn = currentUserId && msg.senderId === currentUserId;
+          let updatedLastPage: ListMessagesResult;
+
+          if (isOwn) {
+            const optimisticIndex = lastPage.items.findIndex(
+              (m: any) =>
+                typeof m.id === "string" &&
+                m.id.startsWith("optimistic-"),
+            );
+            if (optimisticIndex >= 0) {
+              const items = [...lastPage.items];
+              items[optimisticIndex] = msg;
+              updatedLastPage = {
+                ...lastPage,
+                items,
+              };
+            } else {
+              updatedLastPage = {
+                ...lastPage,
+                items: [...lastPage.items, msg],
+              };
+            }
+          } else {
+            updatedLastPage = {
+              ...lastPage,
+              items: [...lastPage.items, msg],
+            };
+          }
           pages[lastPageIndex] = updatedLastPage;
           return { ...prev, pages };
         },
@@ -48,7 +77,7 @@ export function useMessages(conversationId: string | null, socket: Socket | null
     return () => {
       socket.off("new_message", handler);
     };
-  }, [conversationId, socket, queryClient]);
+  }, [conversationId, socket, queryClient, currentUserId]);
 
   return query;
 }

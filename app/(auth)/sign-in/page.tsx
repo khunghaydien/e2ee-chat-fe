@@ -61,7 +61,7 @@ export default function SignIn() {
         >
           <p>
             {t("noAccountPrompt")}
-            <span className="font-bold text-blue-500"> {t("signUpButton")}</span>
+            <span className="font-bold text-secondary"> {t("signUpButton")}</span>
           </p>
         </Link>
       </div>

@@ -1,9 +1,10 @@
- "use client";
+"use client";
 
 import { useState, useEffect, useRef } from "react";
 import { useTranslations } from "next-intl";
 import VirtualList, { type ListRef } from "rc-virtual-list";
 import { MessageBubble } from "./MessageBubble";
+import { Tooltip } from "antd";
 import type { MessageItem } from "@/services/conversation.service";
 import {
   decryptMessage,
@@ -129,8 +130,12 @@ export function MessageList({
             loadMore();
           }
         }}
+        className="px-6"
       >
         {(msg, index) => {
+          const optimisticStatus = (msg as any)
+            .optimisticStatus as "encrypting" | "sending" | "error" | undefined;
+
           const displayContent =
             decryptedMap[msg.id] ??
             (isEncryptedContent(msg.content)
@@ -139,16 +144,50 @@ export function MessageList({
                 : t("loginOnThisDevice")
               : msg.content);
           const prev = sorted[index - 1];
+          const next = sorted[index + 1];
           const showSenderLabel = !prev || prev.senderId !== msg.senderId;
+          const isLastInGroup =
+            !next || next.senderId !== msg.senderId;
+          const showAvatar =
+            msg.senderId !== currentUserId && isLastInGroup;
 
           return (
-            <div className="px-6 py-3">
-              <MessageBubble
-                key={msg.id}
-                content={displayContent}
-                sender={showSenderLabel ? msg.sender?.userName ?? "?" : undefined}
-                isOwn={msg.senderId === currentUserId}
-              />
+            <div className="flex flex-col gap-1">
+              <div
+                className={
+                  msg.senderId === currentUserId &&
+                    optimisticStatus &&
+                    optimisticStatus !== "error"
+                    ? "opacity-60"
+                    : ""
+                }
+              >
+                <MessageBubble
+                  key={msg.id}
+                  content={displayContent}
+                  sender={
+                    msg.senderId !== currentUserId
+                      ? msg.sender?.userName ?? "?"
+                      : undefined
+                  }
+                  isOwn={msg.senderId === currentUserId}
+                  showSenderName={showSenderLabel}
+                  showAvatar={showAvatar}
+                />
+              </div>
+              {msg.senderId === currentUserId &&
+                optimisticStatus === "error" && (
+                  <div className="text-xs text-foreground px-1">
+                    <Tooltip
+                      title={
+                        ((msg as any).optimisticError as string) ??
+                        t("encryptFailed")
+                      }
+                    >
+                      <span className="text-xs text-red-500 cursor-help">!</span>
+                    </Tooltip>
+                  </div>
+                )}
             </div>
           );
         }}

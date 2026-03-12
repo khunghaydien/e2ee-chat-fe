@@ -10,7 +10,7 @@ import {
 } from "react";
 import { SearchOutlined } from "@ant-design/icons";
 import { useTranslations } from "next-intl";
-import { Layout, Input, Typography } from "antd";
+import { Layout, Input, Typography, AutoComplete, Spin } from "antd";
 import { ChatSidebarItem } from "./ChatSidebarItem";
 import { useConversations } from "@/hooks/useConversations";
 import { useUsers } from "@/hooks/useUsers";
@@ -40,6 +40,12 @@ export function Sidebar({
   const t = useTranslations("sidebar");
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [creatingForUserId, setCreatingForUserId] = useState<string | null>(
+    null,
+  );
+  const [titlesByConvId, setTitlesByConvId] = useState<Record<string, string>>(
+    {},
+  );
   useEffect(() => {
     const handle = setTimeout(() => {
       setDebouncedSearch(search.trim());
@@ -47,23 +53,21 @@ export function Sidebar({
     return () => clearTimeout(handle);
   }, [search]);
 
-  const {
-    data,
-    isLoading,
-    isFetchingNextPage,
-    hasNextPage,
-    fetchNextPage,
-  } = useConversations();
+  const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } =
+    useConversations();
   const {
     data: usersData,
     isFetchingNextPage: isFetchingUsersNext,
     hasNextPage: hasUsersNextPage,
     fetchNextPage: fetchUsersNextPage,
-  } = useUsers();
+  } = useUsers(debouncedSearch);
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
   const handleUserClick = async (userId: string, userName: string) => {
+    // đang tạo cuộc chat cho user này rồi thì bỏ qua để tránh tạo trùng
+    if (creatingForUserId === userId) return;
+
     // nếu đã có cuộc chat với user này (title trùng username) thì mở lại
     const existing = conversations.find(
       (conv) =>
@@ -78,6 +82,7 @@ export function Sidebar({
     }
     // nếu chưa có thì tạo cuộc chat mới 1-1
     try {
+      setCreatingForUserId(userId);
       const conv = await conversationService.createConversation([userId]);
       queryClient.invalidateQueries({ queryKey: ["conversations"] });
       setSelectedConversationId(conv.id);
@@ -85,6 +90,10 @@ export function Sidebar({
       setDebouncedSearch("");
     } catch (e) {
       console.error(e);
+    } finally {
+      setCreatingForUserId((current) =>
+        current === userId ? null : current,
+      );
     }
   };
 
@@ -96,13 +105,6 @@ export function Sidebar({
     usersData?.pages.flatMap((page) => page.items) ?? [];
   const users = allUsers.filter((u) => u.id !== user?.id);
 
-  const filteredUsers = useMemo<UserItem[]>(() => {
-    if (!debouncedSearch) return [];
-    const keyword = debouncedSearch.toLowerCase();
-    // backend đã giới hạn số lượng (useUsers -> limit), nên chỉ cần filter
-    return users.filter((u) => u.userName.toLowerCase().includes(keyword));
-  }, [debouncedSearch, users]);
-
   const handleConversationScroll = (e: UIEvent<HTMLDivElement>) => {
     const target = e.currentTarget;
     const { scrollTop, scrollHeight, clientHeight } = target;
@@ -112,90 +114,142 @@ export function Sidebar({
     }
   };
 
+  useEffect(() => {
+    if (!user) return;
+    const missing = conversations.filter(
+      (c) => !c.title && !titlesByConvId[c.id],
+    );
+    if (missing.length === 0) return;
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const entries = await Promise.all(
+          missing.map(async (c) => {
+            try {
+              const participants =
+                await conversationService.getParticipants(c.id);
+              const other = participants.find((p) => p.id !== user.id);
+              return other ? [c.id, other.userName] : null;
+            } catch {
+              return null;
+            }
+          }),
+        );
+        if (cancelled) return;
+        setTitlesByConvId((prev) => {
+          const next = { ...prev };
+          for (const e of entries) {
+            if (e) {
+              const [id, title] = e;
+              if (!next[id]) next[id] = title;
+            }
+          }
+          return next;
+        });
+      } catch {
+        // ignore
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [conversations, titlesByConvId, user]);
+
   return (
     <Layout.Sider
       width={280}
       className="!bg-background p-4 flex flex-col gap-3"
     >
-      <div className="flex flex-col gap-3 w-full relative">
-        <Input
-          allowClear
-          prefix={<SearchOutlined />}
-          placeholder={t("searchPlaceholder")}
-          aria-label={t("searchAria")}
-          size="large"
+      <div className="flex flex-col gap-3 w-full">
+        <AutoComplete
+          style={{ width: "100%" }}
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-        {debouncedSearch && (
-          <div className="absolute left-0 right-0 top-full mt-2 z-20 rounded-xl border border-border-secondary bg-background shadow-lg max-h-72 overflow-y-auto">
-            {filteredUsers.length > 0 ? (
-              <VirtualList<UserItem>
-                data={filteredUsers}
-                height={288} // ~ max-h-72
-                itemHeight={40}
-                itemKey="id"
-                onScroll={(e) => {
-                  const target = e.currentTarget;
-                  const { scrollTop, scrollHeight, clientHeight } = target;
-                  const remaining = scrollHeight - (scrollTop + clientHeight);
-                  if (
-                    hasUsersNextPage &&
-                    !isFetchingUsersNext &&
-                    remaining < 100
-                  ) {
-                    fetchUsersNextPage();
-                  }
-                }}
-              >
-                {(u) => (
-                  <div
-                    key={u.id}
-                    className="cursor-pointer px-3 py-2 hover:bg-muted"
-                    onClick={() => handleUserClick(u.id, u.userName)}
-                  >
-                    <Typography.Text>{u.userName}</Typography.Text>
-                  </div>
-                )}
-              </VirtualList>
-            ) : (
-              <div className="px-3 py-2">
-                <Typography.Text type="secondary" className="text-xs">
-                  {t("noUserFound")}
-                </Typography.Text>
+          onChange={(value) => setSearch(value)}
+          allowClear
+          options={users.map((u) => ({
+            value: u.userName,
+            label: u.userName,
+            userId: u.id,
+          }))}
+          placeholder={t("searchPlaceholder")}
+          popupMatchSelectWidth
+          onPopupScroll={(e) => {
+            const target = e.target as HTMLElement;
+            const { scrollTop, scrollHeight, clientHeight } = target;
+            const remaining = scrollHeight - (scrollTop + clientHeight);
+            if (
+              hasUsersNextPage &&
+              !isFetchingUsersNext &&
+              remaining < 100
+            ) {
+              fetchUsersNextPage();
+            }
+          }}
+          notFoundContent={
+            isFetchingUsersNext || (!usersData && Boolean(debouncedSearch)) ? (
+              <div className="px-3 py-2 flex justify-center">
+                <Spin size="small" />
               </div>
-            )}
-          </div>
-        )}
+            ) : (
+              <Typography.Text type="secondary" className="text-xs">
+                {t("noUserFound")}
+              </Typography.Text>
+            )
+          }
+          onSelect={(_, option: any) => {
+            if (option.userId) {
+              handleUserClick(option.userId, option.value);
+            }
+          }}
+        >
+          <Input
+            allowClear
+            prefix={<SearchOutlined />}
+            aria-label={t("searchAria")}
+            size="large"
+          />
+        </AutoComplete>
       </div>
 
       <div
         className="flex-1 mt-2 overflow-auto"
         onScroll={handleConversationScroll}
       >
-        <VirtualList
-          data={conversations}
-          height={400}
-          itemHeight={72}
-          itemKey="id"
-        >
-          {(conv) => (
-            <div
-              key={conv.id}
-              className="p-0 py-2 cursor-pointer"
-              onClick={() => setSelectedConversationId(conv.id)}
-            >
+        {isLoading ? (
+          <div className="h-full flex items-center justify-center">
+            <Spin />
+          </div>
+        ) : (
+          <VirtualList
+            data={conversations}
+            height={400}
+            itemHeight={72}
+            itemKey="id"
+          >
+            {(conv) => (
+              <div
+                key={conv.id}
+                className="p-0 py-2 cursor-pointer"
+                onClick={() => setSelectedConversationId(conv.id)}
+              >
               <ChatSidebarItem
                 id={conv.id}
-                title={conv.title || `Chat ${conv.id.slice(0, 8)}`}
-                lastMessage=""
-                time={formatTime(conv.updatedAt)}
-                isActive={selectedConversationId === conv.id}
-                isEncrypted
-              />
-            </div>
-          )}
-        </VirtualList>
+                title={
+                  titlesByConvId[conv.id] ||
+                  conv.title ||
+                  `Chat ${conv.id.slice(0, 8)}`
+                }
+                  lastMessage=""
+                  time={formatTime(conv.updatedAt)}
+                  isActive={selectedConversationId === conv.id}
+                  isEncrypted
+                />
+              </div>
+            )}
+          </VirtualList>
+        )}
       </div>
     </Layout.Sider>
   );
