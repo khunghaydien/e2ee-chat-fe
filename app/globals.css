@@ -1,0 +1,168 @@
+@import "tailwindcss";
+
+/* ========== Color palette (gold / brown / charcoal) ========== */
+/* #292C31 charcoal | #070706 near-black | #2D1F11 deep brown | #89612B bronze */
+/* #AC8B56 sandy | #CDAD69 gold | #F4E185 cream */
+
+:root {
+  /* Base: nền sáng trung tính, không dùng vàng làm background */
+  --background: #FAFAF9;
+  --foreground: #2D1F11;
+  --primary: #89612B;
+  --primary-foreground: #FAFAF9;
+
+  /* Chat layout: cùng nền sáng */
+  --chat-bg: #FAFAF9;
+  --chat-sidebar-bg: #FAFAF9;
+  --chat-sidebar-border: #E7E5E4;
+  --chat-input-bg: #FFFFFF;
+  --chat-input-border: #E7E5E4;
+
+  /* Message bubbles: vàng/nâu làm accent cho bubble */
+  --bubble-own-from: #CDAD69;
+  --bubble-own-to: #89612B;
+  --bubble-own-text: #070706;
+  --bubble-other-from: #F5F5F4;
+  --bubble-other-to: #E7E5E4;
+  --bubble-other-text: #2D1F11;
+  --bubble-other-border: #D6D3D1;
+  --bubble-other-shadow: rgba(45, 31, 17, 0.08);
+
+  /* Sidebar list */
+  --sidebar-item-active-bg: rgba(137, 97, 43, 0.12);
+  --sidebar-item-hover-bg: rgba(45, 31, 17, 0.04);
+  --sidebar-sender-name: #89612B;
+
+  /* Avatar placeholder */
+  --avatar-bg: #89612B;
+  --avatar-text: #FAFAF9;
+
+  /* Muted text (secondary) */
+  --text-muted: #78716C;
+
+  /* Header tách biệt với nội dung */
+  --header-border: #E7E5E4;
+}
+
+.dark {
+  --background: #070706;
+  --foreground: #F4E185;
+  --primary: #CDAD69;
+  --primary-foreground: #070706;
+
+  --chat-bg: #070706;
+  --chat-sidebar-bg: #070706;
+  --chat-sidebar-border: rgba(244, 225, 133, 0.12);
+  --chat-input-bg: rgba(0, 0, 0, 0.35);
+  --chat-input-border: rgba(244, 225, 133, 0.15);
+
+  --bubble-own-from: #AC8B56;
+  --bubble-own-to: #89612B;
+  --bubble-own-text: #F4E185;
+  --bubble-other-from: #292C31;
+  --bubble-other-to: #2D1F11;
+  --bubble-other-text: #F4E185;
+  --bubble-other-border: rgba(172, 139, 86, 0.4);
+  --bubble-other-shadow: rgba(0, 0, 0, 0.3);
+
+  --sidebar-item-active-bg: rgba(205, 173, 105, 0.15);
+  --sidebar-item-hover-bg: rgba(244, 225, 133, 0.06);
+  --sidebar-sender-name: #CDAD69;
+
+  --avatar-bg: #2D1F11;
+  --avatar-text: #F4E185;
+
+  --text-muted: #AC8B56;
+
+  --header-border: rgba(244, 225, 133, 0.15);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not(.light) {
+    --background: #070706;
+    --foreground: #F4E185;
+    --primary: #CDAD69;
+    --primary-foreground: #070706;
+    --chat-bg: #070706;
+    --chat-sidebar-bg: #070706;
+    --chat-sidebar-border: rgba(244, 225, 133, 0.12);
+    --chat-input-bg: rgba(0, 0, 0, 0.35);
+    --chat-input-border: rgba(244, 225, 133, 0.15);
+    --bubble-own-from: #AC8B56;
+    --bubble-own-to: #89612B;
+    --bubble-own-text: #F4E185;
+    --bubble-other-from: #292C31;
+    --bubble-other-to: #2D1F11;
+    --bubble-other-text: #F4E185;
+    --bubble-other-border: rgba(172, 139, 86, 0.4);
+    --bubble-other-shadow: rgba(0, 0, 0, 0.3);
+    --sidebar-item-active-bg: rgba(205, 173, 105, 0.15);
+    --sidebar-item-hover-bg: rgba(244, 225, 133, 0.06);
+    --sidebar-sender-name: #CDAD69;
+    --avatar-bg: #2D1F11;
+    --avatar-text: #F4E185;
+    --text-muted: #AC8B56;
+    --header-border: rgba(244, 225, 133, 0.15);
+  }
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-chat-bg: var(--chat-bg);
+  --color-chat-sidebar: var(--chat-sidebar-bg);
+  --color-chat-input: var(--chat-input-bg);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+/* Bubble gradients (no hardcoded hex in components) */
+.bubble-own {
+  background: linear-gradient(
+    to bottom right,
+    var(--bubble-own-from),
+    var(--bubble-own-to)
+  );
+  color: var(--bubble-own-text);
+}
+.bubble-other {
+  background: linear-gradient(
+    to bottom right,
+    var(--bubble-other-from),
+    var(--bubble-other-to)
+  );
+  color: var(--bubble-other-text);
+  border: 1px solid var(--bubble-other-border);
+  box-shadow: 0 1px 2px var(--bubble-other-shadow);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px var(--ant-color-bg-container) inset;
+  -webkit-text-fill-color: var(--foreground);
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+.sidebar-item:hover {
+  background: var(--sidebar-item-hover-bg);
+}
+
+.ant-form-item .ant-form-item-label {
+  > label {
+    color: var(--foreground) !important;
+    font-weight: 600 !important;
+  }
+  > label.ant-form-item-required::before {
+    display: none !important;
+  }
+}

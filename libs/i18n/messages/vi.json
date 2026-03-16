@@ -1,0 +1,53 @@
+{
+  "app_title": "E2EE Chat",
+  "app_description": "E2EE Chat là một nền tảng chat an toàn và riêng tư.",
+  "authentication": {
+  "userName": "Tên đăng nhập",
+  "userNameRequired": "Tên đăng nhập là bắt buộc",
+  "password": "Mật khẩu",
+  "passwordRequired": "Mật khẩu là bắt buộc",
+  "signInButton": "Đăng nhập",
+  "signUpButton": "Đăng ký",
+  "haveAccountPrompt": "Đã có tài khoản?",
+  "noAccountPrompt": "Chưa có tài khoản?",
+  "userNamePlaceholder": "Tên đăng nhập",
+  "passwordPlaceholder": "Mật khẩu",
+  "authFailed": "Đăng nhập thất bại. Vui lòng kiểm tra thông tin và thử lại.",
+  "signUpFailed": "Đăng ký thất bại. Vui lòng thử lại sau.",
+  "copyPrivateKeyModalTitle": "Lưu khóa riêng tư của bạn",
+  "copyPrivateKeyModalDescription": "Khóa riêng tư này dùng để giải mã tin nhắn của bạn. Hãy sao chép và lưu trữ ở nơi an toàn. Chúng tôi không thể khôi phục nó cho bạn.",
+  "copyPrivateKeyModalConfirmButton": "Tôi đã lưu khóa riêng tư an toàn",
+  "copyPrivateKeyModalCheckboxDescription": "Tôi hiểu rằng nếu mất khóa riêng tư này, tôi sẽ mất quyền truy cập vào các tin nhắn đã mã hóa.",
+  "copyPrivateKeyButton": "Sao chép khóa riêng tư",
+  "copied": "Đã sao chép"
+  },
+  "sidebar": {
+    "searchPlaceholder": "Tìm kiếm người dùng...",
+    "searchAria": "Tìm kiếm theo tên người dùng để bắt đầu chat",
+    "newEncryptedChat": "Cuộc chat mã hóa mới",
+    "loadMore": "Tải thêm",
+    "noUserFound": "Không tìm thấy người dùng phù hợp"
+  },
+  "chat": {
+    "today": "Hôm nay",
+    "missingRecipientKey": "[Thiếu public key người nhận]",
+    "missingSenderKey": "[Thiếu public key người gửi]",
+    "cannotDecrypt": "[Không thể giải mã]",
+    "loginOnThisDevice": "[Đăng nhập trên thiết bị này để xem]",
+    "selectConversationPlaceholder": "Chọn một cuộc hội thoại hoặc tạo chat mới",
+    "missingPrivateKeyError": "Chưa có khóa mã hóa. Vui lòng nhập khóa riêng tư của bạn.",
+    "missingRecipientPublicKeyError": "Chưa có public key người nhận. Không thể mã hóa.",
+    "encryptFailed": "Mã hóa thất bại",
+    "invalidStoredPrivateKey": "Khóa riêng tư trong bộ nhớ không hợp lệ",
+    "encryptedTooltip": "Tin nhắn này đã được mã hóa end-to-end",
+    "messagesEncrypted": "Tin nhắn được mã hóa end-to-end",
+    "sendNeedRecipientKey": "Cần public key của người nhận để gửi",
+    "attach": "Đính kèm",
+    "typeMessagePlaceholder": "Nhập tin nhắn...",
+    "messageInputAria": "Ô nhập tin nhắn",
+    "emoji": "Biểu tượng cảm xúc",
+    "sendMessage": "Gửi tin nhắn",
+    "e2eeLabel": "Mã hóa end-to-end",
+    "unknownParticipant": "Không xác định"
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "app_title": "E2EE Chat",
+  "app_description": "E2EE Chat is a platform for secure and private chat.",
+  "authentication": {
+  "userName": "Username",
+  "userNameRequired": "Username is required",
+  "password": "Password",
+  "passwordRequired": "Password is required",
+  "signInButton": "Sign In",
+  "signUpButton": "Sign Up",
+  "haveAccountPrompt": "Already have an account?",
+  "noAccountPrompt": "Don't have an account?",
+  "userNamePlaceholder": "Username",
+  "passwordPlaceholder": "Password",
+  "authFailed": "Sign in failed. Please check your credentials and try again.",
+  "signUpFailed": "Sign up failed. Please try again later.",
+  "copyPrivateKeyModalTitle": "Save your private key",
+  "copyPrivateKeyModalDescription": "This private key is used to decrypt your messages. Copy and store it in a safe place. We cannot recover it for you.",
+  "copyPrivateKeyModalConfirmButton": "I have safely stored my private key",
+  "copyPrivateKeyModalCheckboxDescription": "I understand that if I lose this private key, I will lose access to my encrypted messages.",
+  "copyPrivateKeyButton": "Copy private key",
+  "copied": "Copied"
+  },
+  "sidebar": {
+    "searchPlaceholder": "Search users...",
+    "searchAria": "Search by username to start a chat",
+    "newEncryptedChat": "New encrypted chat",
+    "loadMore": "Load more",
+    "noUserFound": "No matching users found"
+  },
+  "chat": {
+    "today": "Today",
+    "missingRecipientKey": "[Missing recipient public key]",
+    "missingSenderKey": "[Missing sender public key]",
+    "cannotDecrypt": "[Unable to decrypt]",
+    "loginOnThisDevice": "[Sign in on this device to view]",
+    "selectConversationPlaceholder": "Select a conversation or start a new chat",
+    "missingPrivateKeyError": "Missing encryption key. Please enter your encryption key.",
+    "missingRecipientPublicKeyError": "Missing recipient public key. Cannot encrypt.",
+    "encryptFailed": "Encryption failed",
+    "invalidStoredPrivateKey": "Invalid private key (JWK) in storage",
+    "encryptedTooltip": "This message is end-to-end encrypted",
+    "messagesEncrypted": "Messages are end-to-end encrypted",
+    "sendNeedRecipientKey": "Recipient public key is required to send",
+    "attach": "Attach",
+    "typeMessagePlaceholder": "Type a message...",
+    "messageInputAria": "Message input",
+    "emoji": "Emoji",
+    "sendMessage": "Send message",
+    "e2eeLabel": "End-to-end encrypted",
+    "unknownParticipant": "Unknown"
+  }
+}
